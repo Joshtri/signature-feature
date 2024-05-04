@@ -4,72 +4,57 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tanda Tangan Digital</title>
+<!-- Sertakan jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Sertakan JSignature melalui CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jSignature/2.1.2/jSignature.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jSignature/2.1.2/jSignature.min.css">
 <style>
-    canvas {
-        border: 1px solid #000;
-        cursor: crosshair;
+    /* CSS untuk menambahkan border ke elemen canvas */
+    #signature {
+        border: 1px solid #ccc;
     }
 </style>
 </head>
 <body>
 <h1>Tanda Tangan Digital</h1>
-<canvas id="signatureCanvas" width="400" height="200"></canvas>
+<!-- Elemen HTML untuk menampung area tanda tangan -->
+<div id="signature"></div>
 <button onclick="saveSignature()">Simpan Tanda Tangan</button>
+<button onclick="resetSignature()">Reset Tanda Tangan</button>
 
 <script>
-    const canvas = document.getElementById('signatureCanvas');
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
-
-    // Fungsi untuk menangani sentuhan pada layar
-    function onTouchStart(e) {
-        isDrawing = true;
-        const touch = e.touches[0];
-        const x = touch.clientX - canvas.offsetLeft;
-        const y = touch.clientY - canvas.offsetTop;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-    }
-
-    function onTouchMove(e) {
-        if (isDrawing) {
-            const touch = e.touches[0];
-            const x = touch.clientX - canvas.offsetLeft;
-            const y = touch.clientY - canvas.offsetTop;
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-    }
-
-    function onTouchEnd() {
-        isDrawing = false;
-    }
-
-    // Mendengarkan sentuhan pada layar
-    canvas.addEventListener('touchstart', onTouchStart);
-    canvas.addEventListener('touchmove', onTouchMove);
-    canvas.addEventListener('touchend', onTouchEnd);
+    // Inisialisasi JSignature
+    $('#signature').jSignature();
 
     function saveSignature() {
-        const signatureData = canvas.toDataURL();
-        
-        // Kirim data tanda tangan ke server
-        fetch('/api/signature', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+        // Mendapatkan data tanda tangan dalam format base64
+        var signatureData = $('#signature').jSignature('getData', 'image');
+        // Kirimkan data tanda tangan ke server
+        $.ajax({
+            url: '/api/signature',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ signatureData: signatureData[1] }),
+            success: function(response) {
+                console.log(response);
+                alert('Tanda tangan disimpan!');
+                // Matikan JSignature setelah tanda tangan disimpan
+                $('#signature').jSignature('clear');
+                $('#signature').jSignature('disable');
             },
-            body: JSON.stringify({ signatureData })
-        })
-        .then(response => response.text())
-        .then(data => {
-            console.log(data);
-            alert('Tanda tangan disimpan!');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Gagal menyimpan tanda tangan.');
+            error: function(error) {
+                console.error('Error:', error);
+                alert('Gagal menyimpan tanda tangan.');
+            }
         });
+    }
+
+    function resetSignature() {
+        // Reset tanda tangan
+        $('#signature').jSignature('clear');
+        // Aktifkan kembali JSignature setelah reset
+        $('#signature').jSignature('enable');
     }
 </script>
 </body>

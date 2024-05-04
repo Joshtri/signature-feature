@@ -21,22 +21,34 @@
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
 
-    canvas.addEventListener('mousedown', (e) => {
+    // Fungsi untuk menangani sentuhan pada layar
+    function onTouchStart(e) {
         isDrawing = true;
+        const touch = e.touches[0];
+        const x = touch.clientX - canvas.offsetLeft;
+        const y = touch.clientY - canvas.offsetTop;
         ctx.beginPath();
-        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-    });
+        ctx.moveTo(x, y);
+    }
 
-    canvas.addEventListener('mousemove', (e) => {
+    function onTouchMove(e) {
         if (isDrawing) {
-            ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            const touch = e.touches[0];
+            const x = touch.clientX - canvas.offsetLeft;
+            const y = touch.clientY - canvas.offsetTop;
+            ctx.lineTo(x, y);
             ctx.stroke();
         }
-    });
+    }
 
-    canvas.addEventListener('mouseup', () => {
+    function onTouchEnd() {
         isDrawing = false;
-    });
+    }
+
+    // Mendengarkan sentuhan pada layar
+    canvas.addEventListener('touchstart', onTouchStart);
+    canvas.addEventListener('touchmove', onTouchMove);
+    canvas.addEventListener('touchend', onTouchEnd);
 
     function saveSignature() {
         const signatureData = canvas.toDataURL();

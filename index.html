@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tanda Tangan Digital</title>
+<style>
+    canvas {
+        border: 1px solid #000;
+        cursor: crosshair;
+    }
+</style>
+</head>
+<body>
+<h1>Tanda Tangan Digital</h1>
+<canvas id="signatureCanvas" width="400" height="200"></canvas>
+<button onclick="saveSignature()">Simpan Tanda Tangan</button>
+
+<script>
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDrawing) {
+            ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            ctx.stroke();
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isDrawing = false;
+    });
+
+    function saveSignature() {
+        const signatureData = canvas.toDataURL();
+        
+        // Kirim data tanda tangan ke server
+        fetch('/api/signature', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ signatureData })
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+            alert('Tanda tangan disimpan!');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal menyimpan tanda tangan.');
+        });
+    }
+</script>
+</body>
+</html>
